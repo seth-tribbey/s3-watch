@@ -2,6 +2,7 @@ idf_component_register(
     SRCS 
         "app_main.c"
         "i2c_controller.c"
+        "drivers/axp2101.c"
         "drivers/st7789.c"
         "drivers/ft5436.c"
         "drivers/drv2605.c"

@@ -48,9 +48,9 @@ static void touchTask(void *pvParameters)
 
 static void initTask(void *pvParameters)
 {
+    i2c_controller_init();
     st7789_init();
     st7789_fillBlack();
-    i2c_controller_init();
     ft5436_registerIsrHandler(touchIsr);
 
     xTaskCreatePinnedToCore(touchTask, "fTaskProcessTouch", 4096U, NULL, 2U, &touchTaskHandle, 1);
