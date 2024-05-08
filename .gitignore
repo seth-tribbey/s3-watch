@@ -1,0 +1,8 @@
+.devcontainer/
+.vscode/
+build/
+managed_components/
+trace/
+debug.log
+pytest_hello_world.py
+sdkconfig.old
