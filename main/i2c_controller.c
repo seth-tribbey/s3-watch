@@ -8,11 +8,8 @@
 #include "driver/gpio.h"
 
 static const char *TAG = "i2c_controller";
-static i2c_master_dev_handle_t axp2101_dev;
-static i2c_master_dev_handle_t ft5436_dev;
-static i2c_master_dev_handle_t drv2605_dev;
 
-void i2c_controller_init()
+void i2c_controller_init(peripheral_handles *peripherals)
 {
     //Buses
     i2c_master_bus_handle_t bus_handle_0;
@@ -44,25 +41,25 @@ void i2c_controller_init()
         .device_address = FT6X36_ADDR,
         .scl_speed_hz = 100000U
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_0, &ft5436_config, &ft5436_dev));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_0, &ft5436_config, peripherals->ft5436_handle));
 
     i2c_device_config_t axp2101_config = {
         .dev_addr_length = I2C_ADDR_BIT_7,
         .device_address = AXP2101_SLAVE_ADDRESS,
         .scl_speed_hz = 100000U
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_1, &axp2101_config, &axp2101_dev));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_1, &axp2101_config, peripherals->axp2101_handle));
 
     i2c_device_config_t drv2605_config = {
         .dev_addr_length = I2C_ADDR_BIT_7,
         .device_address = DRV2605_SLAVE_ADDRESS,
         .scl_speed_hz = 100000U
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_1, &drv2605_config, &drv2605_dev));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_1, &drv2605_config, peripherals->drv2605_handle));
 
-    axp2101_init(axp2101_dev);
-    ft5436_init(ft5436_dev, FT6X36_DEFAULT_THRESHOLD);
-    drv2605_init(drv2605_dev);
+    axp2101_init(peripherals->axp2101_handle);
+    ft5436_init(peripherals->ft5436_handle, FT6X36_DEFAULT_THRESHOLD);
+    drv2605_init(peripherals->drv2605_handle);
 }
 
 esp_err_t i2c_writeRegister(i2c_master_dev_handle_t dev_handle, uint8_t reg, uint8_t value)

@@ -1,4 +1,5 @@
 #pragma once
 
-void st7789_init();
-void st7789_fillBlack();
+#include "app_main.h"
+
+void st7789_init(peripheral_handles *peripherals);

@@ -52,3 +52,5 @@
 #define DRV2605_REG_LRARESON        (0x22)              //* LRA resonance-period register
 
 void drv2605_init(i2c_master_dev_handle_t dev);
+void drv2605_go();
+void drv2605_stop();

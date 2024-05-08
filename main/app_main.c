@@ -1,13 +1,16 @@
+#include "app_main.h"
 #include "t_watch_s3.h"
 #include "i2c_controller.h"
 #include "st7789.h"
 #include "ft5436.h"
+#include "drv2605.h"
 #include "freertos/FreeRTOS.h"
 #include "driver/gpio.h"
 #include <esp_log.h>
+#include <esp_lcd_types.h>
 
 static const char *TAG = "app_main";
-
+static peripheral_handles peripherals;
 static TaskHandle_t touchTaskHandle;
 
 static void logTasks()
@@ -33,14 +36,10 @@ static void touchTask(void *pvParameters)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         ESP_ERROR_CHECK(gpio_intr_disable(BOARD_TOUCH_INT));
-        
-        for (;;)
-        {
-            ft5436_xy_touch(&point, &touch_cnt);
-            ESP_LOGI(TAG, "X: %d, Y: %d", point.x, point.y);
-            if (touch_cnt == 0U) break;
-            vTaskDelay(1000U / portTICK_PERIOD_MS);
-        }
+        ft5436_xy_touch(&point, &touch_cnt);
+        ESP_LOGI(TAG, "X: %d, Y: %d", point.x, point.y);
+        drv2605_go();
+        vTaskDelay(1000U / portTICK_PERIOD_MS);
         ESP_ERROR_CHECK(gpio_intr_enable(BOARD_TOUCH_INT));
         ESP_LOGI(TAG, "Reached end of touchTask");
     }
@@ -48,10 +47,12 @@ static void touchTask(void *pvParameters)
 
 static void initTask(void *pvParameters)
 {
-    i2c_controller_init();
-    st7789_init();
-    st7789_fillBlack();
+    //Init peripherals
+    i2c_controller_init(&peripherals);
+    st7789_init(&peripherals);
     ft5436_registerIsrHandler(touchIsr);
+
+    //Init lvgl
 
     xTaskCreatePinnedToCore(touchTask, "fTaskProcessTouch", 4096U, NULL, 2U, &touchTaskHandle, 1);
 
