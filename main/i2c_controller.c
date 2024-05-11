@@ -12,9 +12,9 @@ static const char *TAG = "i2c_controller";
 void i2c_controller_init(peripheral_handles *peripherals)
 {
     //Buses
-    i2c_master_bus_handle_t bus_handle_0;
-    i2c_master_bus_handle_t bus_handle_1;
-    
+    i2c_master_bus_handle_t i2c_bus0;
+    i2c_master_bus_handle_t i2c_bus1;
+
     i2c_master_bus_config_t i2c_mst_config_0 = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
         .i2c_port = I2C_NUM_0,
@@ -23,7 +23,7 @@ void i2c_controller_init(peripheral_handles *peripherals)
         .glitch_ignore_cnt = 7U,
         .flags.enable_internal_pullup = true
     };
-    ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config_0, &bus_handle_0));
+    ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config_0, &i2c_bus0));
     
     i2c_master_bus_config_t i2c_mst_config_1 = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
@@ -33,7 +33,7 @@ void i2c_controller_init(peripheral_handles *peripherals)
         .glitch_ignore_cnt = 7U,
         .flags.enable_internal_pullup = true
     };
-    ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config_1, &bus_handle_1));
+    ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config_1, &i2c_bus1));
 
     //Devices
     i2c_device_config_t ft5436_config = {
@@ -41,21 +41,21 @@ void i2c_controller_init(peripheral_handles *peripherals)
         .device_address = FT6X36_ADDR,
         .scl_speed_hz = 100000U
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_0, &ft5436_config, peripherals->ft5436_handle));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(i2c_bus0, &ft5436_config, &(peripherals->ft5436_handle)));
 
     i2c_device_config_t axp2101_config = {
         .dev_addr_length = I2C_ADDR_BIT_7,
         .device_address = AXP2101_SLAVE_ADDRESS,
         .scl_speed_hz = 100000U
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_1, &axp2101_config, peripherals->axp2101_handle));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(i2c_bus1, &axp2101_config, &(peripherals->axp2101_handle)));
 
     i2c_device_config_t drv2605_config = {
         .dev_addr_length = I2C_ADDR_BIT_7,
         .device_address = DRV2605_SLAVE_ADDRESS,
         .scl_speed_hz = 100000U
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle_1, &drv2605_config, peripherals->drv2605_handle));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(i2c_bus1, &drv2605_config, &(peripherals->drv2605_handle)));
 
     axp2101_init(peripherals->axp2101_handle);
     ft5436_init(peripherals->ft5436_handle, FT6X36_DEFAULT_THRESHOLD);

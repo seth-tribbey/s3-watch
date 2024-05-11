@@ -83,7 +83,7 @@
  * - LV_OS_RTTHREAD
  * - LV_OS_WINDOWS
  * - LV_OS_CUSTOM */
-#define LV_USE_OS   LV_OS_NONE
+#define LV_USE_OS   LV_OS_FREERTOS
 
 #if LV_USE_OS == LV_OS_CUSTOM
     #define LV_OS_CUSTOM_INCLUDE <stdint.h>
@@ -936,7 +936,7 @@
 *==================*/
 
 /*Enable the examples to be built with the library*/
-#define LV_BUILD_EXAMPLES 1
+#define LV_BUILD_EXAMPLES 0
 
 /*===================
  * DEMO USAGE

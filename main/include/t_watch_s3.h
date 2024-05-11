@@ -5,7 +5,7 @@
 #pragma once
 
 #define BOARD_TFT_WIDTH             (240)
-#define BOARD_TFT_HEIHT             (240)
+#define BOARD_TFT_HEIGHT            (240)
 
 // ST7789
 #define BOARD_TFT_MISO              (-1) 

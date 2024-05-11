@@ -6,7 +6,6 @@ idf_component_register(
         "drivers/st7789.c"
         "drivers/ft5436.c"
         "drivers/drv2605.c"
-        "graphics.c"
     INCLUDE_DIRS 
         "."
         "include"

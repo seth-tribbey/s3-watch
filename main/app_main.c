@@ -6,12 +6,21 @@
 #include "drv2605.h"
 #include "freertos/FreeRTOS.h"
 #include "driver/gpio.h"
+#include "lvgl.h"
 #include <esp_log.h>
 #include <esp_lcd_types.h>
 
+#define INIT_TASK_STACK_SIZE   (4 * 1024)
+#define INIT_TASK_PRIORITY     (0)
+
+#define LVGL_TASK_MAX_DELAY_MS (500)
+#define LVGL_TASK_MIN_DELAY_MS (1)
+#define LVGL_TASK_STACK_SIZE   (6 * 1024)
+#define LVGL_TASK_PRIORITY     (2)
+
 static const char *TAG = "app_main";
 static peripheral_handles peripherals;
-static TaskHandle_t touchTaskHandle;
+static TaskHandle_t lvgl_task_handle;
 
 static void logTasks()
 {
@@ -20,28 +29,18 @@ static void logTasks()
     ESP_LOGI(TAG, "%s", outputBuffer);
 }
 
-static void IRAM_ATTR touchIsr(void *arg)
+static void lvgl_port_task(void *arg)
 {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    vTaskNotifyGiveFromISR(touchTaskHandle, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
-
-static void touchTask(void *pvParameters)
-{
-    ft5436_Point point;
-    uint8_t touch_cnt;
-
-    for (;;)
-    {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        ESP_ERROR_CHECK(gpio_intr_disable(BOARD_TOUCH_INT));
-        ft5436_xy_touch(&point, &touch_cnt);
-        ESP_LOGI(TAG, "X: %d, Y: %d", point.x, point.y);
-        drv2605_go();
-        vTaskDelay(1000U / portTICK_PERIOD_MS);
-        ESP_ERROR_CHECK(gpio_intr_enable(BOARD_TOUCH_INT));
-        ESP_LOGI(TAG, "Reached end of touchTask");
+    ESP_LOGI(TAG, "Starting LVGL task");
+    uint32_t task_delay_ms = LVGL_TASK_MAX_DELAY_MS;
+    while (1) {
+        task_delay_ms = lv_timer_handler();
+        if (task_delay_ms > LVGL_TASK_MAX_DELAY_MS) {
+            task_delay_ms = LVGL_TASK_MAX_DELAY_MS;
+        } else if (task_delay_ms < LVGL_TASK_MIN_DELAY_MS) {
+            task_delay_ms = LVGL_TASK_MIN_DELAY_MS;
+        }
+        vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
     }
 }
 
@@ -50,17 +49,15 @@ static void initTask(void *pvParameters)
     //Init peripherals
     i2c_controller_init(&peripherals);
     st7789_init(&peripherals);
-    ft5436_registerIsrHandler(touchIsr);
+    create_lvgl_ui();
 
-    //Init lvgl
-
-    xTaskCreatePinnedToCore(touchTask, "fTaskProcessTouch", 4096U, NULL, 2U, &touchTaskHandle, 1);
+    xTaskCreatePinnedToCore(lvgl_port_task, "lvgl", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY, &lvgl_task_handle, 1);
 
     vTaskDelete(NULL);
 }
 
 void app_main(void)
 {   
-    xTaskCreatePinnedToCore(initTask, "fInitTask", 4096U, NULL, 1U, NULL, 1);
+    xTaskCreatePinnedToCore(initTask, "fInitTask", INIT_TASK_STACK_SIZE, NULL, INIT_TASK_PRIORITY, NULL, 1);
     vTaskDelete(NULL);
 }
