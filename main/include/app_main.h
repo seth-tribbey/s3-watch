@@ -9,4 +9,4 @@ typedef struct
     i2c_master_dev_handle_t ft5436_handle;
     i2c_master_dev_handle_t drv2605_handle;
     esp_lcd_panel_handle_t st7789_handle;
-} peripheral_handles;
+} peripheral_handles_t;

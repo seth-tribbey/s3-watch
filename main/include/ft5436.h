@@ -3,15 +3,6 @@
 #include <stdint.h>
 #include "driver/i2c_master.h"
 
-//I2C Constants
-#define I2C_MASTER_TX_BUF_DISABLE 0 //I2C master doesn't need buffer
-#define I2C_MASTER_RX_BUF_DISABLE 0 //I2C master doesn't need buffer
-
-#define ACK_CHECK_EN 0x1 //I2C master will check ack from slave
-#define ACK_CHECK_DIS 0x0 //I2C master will not check ack from slave
-#define ACK_VAL 0x0 //I2C ack value
-#define NACK_VAL 0x1 //I2C nack value
-
 #define FT6X36_ADDR						0x38
 
 #define FT6X36_REG_DEVICE_MODE			0x00
@@ -81,7 +72,7 @@ typedef enum
 	LiftUp,
 	Contact,
 	NoEvent
-} ft5436_RawEvent;
+} ft5436_raw_event_t;
 
 typedef enum 
 {
@@ -93,16 +84,18 @@ typedef enum
 	DragStart,
 	DragMove,
 	DragEnd
-} ft5436_Event;
+} ft5436_event_t;
 
 typedef struct 
 {
 	uint16_t x;
 	uint16_t y;
-} ft5436_Point;
+} ft5436_point_t;
 
 void ft5436_init(i2c_master_dev_handle_t dev, uint8_t threshold);
-void ft5436_registerIsrHandler(void (*fn)(void *arg));
-void ft5436_registerTouchHandler(void(*fn)(ft5436_Point point, ft5436_Event e));
-void ft5436_xy_touch(ft5436_Point *point, uint8_t *count);
-void ft5436_xy_event(ft5436_Point * point, ft5436_Event * event);
+void ft5436_register_isr_handler(void (*fn)(void *arg));
+void ft5436_xy_touch(ft5436_point_t *point, uint8_t *count);
+void ft5436_xy_event(ft5436_point_t *point, ft5436_event_t *event);
+void ft5436_set_rotation(uint8_t rotation);
+void ft5436_set_touch_width(uint16_t width);
+void ft5436_set_touch_height(uint16_t height);

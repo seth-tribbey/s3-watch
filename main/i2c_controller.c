@@ -9,7 +9,7 @@
 
 static const char *TAG = "i2c_controller";
 
-void i2c_controller_init(peripheral_handles *peripherals)
+void i2c_controller_init(peripheral_handles_t *peripherals)
 {
     //Buses
     i2c_master_bus_handle_t i2c_bus0;

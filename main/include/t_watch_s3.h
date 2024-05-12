@@ -1,7 +1,3 @@
-/*
-    Display: ST7789V (SPI)
-    Touch controller: FT5436 (I2C)
-*/
 #pragma once
 
 #define BOARD_TFT_WIDTH             (240)
@@ -16,7 +12,7 @@
 #define BOARD_TFT_RST               (-1)
 #define BOARD_TFT_BL                (45)
 
-// Touch
+// FT5436
 #define BOARD_TOUCH_SDA             (39)
 #define BOARD_TOUCH_SCL             (40)
 #define BOARD_TOUCH_INT             (16)

@@ -10,7 +10,6 @@
 #define XPOWERS_AXP2101_STATUS2                          (0x01)
 #define XPOWERS_AXP2101_IC_TYPE                          (0x03)
 
-
 #define XPOWERS_AXP2101_DATA_BUFFER1                     (0x04)
 #define XPOWERS_AXP2101_DATA_BUFFER2                     (0x05)
 #define XPOWERS_AXP2101_DATA_BUFFER3                     (0x06)
@@ -26,10 +25,8 @@
 #define XPOWERS_AXP2101_RESET_FUEL_GAUGE                 (0x17)
 #define XPOWERS_AXP2101_CHARGE_GAUGE_WDT_CTRL            (0x18)
 
-
 #define XPOWERS_AXP2101_WDT_CTRL                         (0x19)
 #define XPOWERS_AXP2101_LOW_BAT_WARN_SET                 (0x1A)
-
 
 #define XPOWERS_AXP2101_PWRON_STATUS                     (0x20)
 #define XPOWERS_AXP2101_PWROFF_STATUS                    (0x21)
@@ -57,12 +54,10 @@
 #define XPOWERS_AXP2101_ADC_DATA_RELUST8                 (0x3C)
 #define XPOWERS_AXP2101_ADC_DATA_RELUST9                 (0x3D)
 
-
 //XPOWERS INTERRUPT REGISTER
 #define XPOWERS_AXP2101_INTEN1                           (0x40)
 #define XPOWERS_AXP2101_INTEN2                           (0x41)
 #define XPOWERS_AXP2101_INTEN3                           (0x42)
-
 
 //XPOWERS INTERRUPT STATUS REGISTER
 #define XPOWERS_AXP2101_INTSTS1                          (0x48)
@@ -74,18 +69,15 @@
 #define XPOWERS_AXP2101_TS_HYSL2H_SET                    (0x52)
 #define XPOWERS_AXP2101_TS_LYSL2H_SET                    (0x53)
 
-
 #define XPOWERS_AXP2101_VLTF_CHG_SET                     (0x54)
 #define XPOWERS_AXP2101_VHLTF_CHG_SET                    (0x55)
 #define XPOWERS_AXP2101_VLTF_WORK_SET                    (0x56)
 #define XPOWERS_AXP2101_VHLTF_WORK_SET                   (0x57)
 
-
 #define XPOWERS_AXP2101_JIETA_EN_CTRL                    (0x58)
 #define XPOWERS_AXP2101_JIETA_SET0                       (0x59)
 #define XPOWERS_AXP2101_JIETA_SET1                       (0x5A)
 #define XPOWERS_AXP2101_JIETA_SET2                       (0x5B)
-
 
 #define XPOWERS_AXP2101_IPRECHG_SET                      (0x61)
 #define XPOWERS_AXP2101_ICC_CHG_SET                      (0x62)
@@ -103,9 +95,7 @@
 #define XPOWERS_AXP2101_BTN_VOL_MAX                      (3300)
 #define XPOWERS_AXP2101_BTN_VOL_STEPS                    (100)
 
-
 #define XPOWERS_AXP2101_BTN_BAT_CHG_VOL_SET              (0x6A)
-
 
 #define XPOWERS_AXP2101_DC_ONOFF_DVM_CTRL                (0x80)
 #define XPOWERS_AXP2101_DC_FORCE_PWM_CTRL                (0x81)
@@ -114,7 +104,6 @@
 #define XPOWERS_AXP2101_DC_VOL2_CTRL                     (0x84)
 #define XPOWERS_AXP2101_DC_VOL3_CTRL                     (0x85)
 #define XPOWERS_AXP2101_DC_VOL4_CTRL                     (0x86)
-
 
 #define XPOWERS_AXP2101_LDO_ONOFF_CTRL0                  (0x90)
 #define XPOWERS_AXP2101_LDO_ONOFF_CTRL1                  (0x91)
@@ -127,7 +116,6 @@
 #define XPOWERS_AXP2101_LDO_VOL6_CTRL                    (0x98)
 #define XPOWERS_AXP2101_LDO_VOL7_CTRL                    (0x99)
 #define XPOWERS_AXP2101_LDO_VOL8_CTRL                    (0x9A)
-
 
 #define XPOWERS_AXP2101_BAT_PARAME                       (0xA1)
 #define XPOWERS_AXP2101_FUEL_GAUGE_CTRL                  (0xA2)
@@ -149,7 +137,6 @@
 #define XPOWERS_AXP2101_DCDC2_VOL_STEPS1_BASE            (0u)
 #define XPOWERS_AXP2101_DCDC2_VOL_STEPS2_BASE            (71)
 
-
 #define XPOWERS_AXP2101_DCDC3_VOL1_MIN                  (500u)
 #define XPOWERS_AXP2101_DCDC3_VOL1_MAX                  (1200u)
 #define XPOWERS_AXP2101_DCDC3_VOL2_MIN                  (1220u)
@@ -168,8 +155,6 @@
 #define XPOWERS_AXP2101_DCDC3_VOL_STEPS2_BASE            (71)
 #define XPOWERS_AXP2101_DCDC3_VOL_STEPS3_BASE            (88)
 
-
-
 #define XPOWERS_AXP2101_DCDC4_VOL1_MIN                  (500u)
 #define XPOWERS_AXP2101_DCDC4_VOL1_MAX                  (1200u)
 #define XPOWERS_AXP2101_DCDC4_VOL2_MIN                  (1220u)
@@ -180,8 +165,6 @@
 
 #define XPOWERS_AXP2101_DCDC4_VOL_STEPS1_BASE            (0u)
 #define XPOWERS_AXP2101_DCDC4_VOL_STEPS2_BASE            (71)
-
-
 
 #define XPOWERS_AXP2101_DCDC5_VOL_1200MV                 (1200)
 #define XPOWERS_AXP2101_DCDC5_VOL_VAL                    (0x19)
@@ -194,7 +177,6 @@
 #define XPOWERS_AXP2101_VSYS_VOL_THRESHOLD_STEPS        (100)
 
 // ALDO 1~4
-
 #define XPOWERS_AXP2101_ALDO1_VOL_MIN                    (500)
 #define XPOWERS_AXP2101_ALDO1_VOL_MAX                    (3500)
 #define XPOWERS_AXP2101_ALDO1_VOL_STEPS                  (100u)
@@ -203,18 +185,15 @@
 #define XPOWERS_AXP2101_ALDO2_VOL_MAX                    (3500)
 #define XPOWERS_AXP2101_ALDO2_VOL_STEPS                  (100u)
 
-
 #define XPOWERS_AXP2101_ALDO3_VOL_MIN                    (500)
 #define XPOWERS_AXP2101_ALDO3_VOL_MAX                    (3500)
 #define XPOWERS_AXP2101_ALDO3_VOL_STEPS                  (100u)
-
 
 #define XPOWERS_AXP2101_ALDO4_VOL_MIN                    (500)
 #define XPOWERS_AXP2101_ALDO4_VOL_MAX                    (3500)
 #define XPOWERS_AXP2101_ALDO4_VOL_STEPS                  (100u)
 
 // BLDO 1~2
-
 #define XPOWERS_AXP2101_BLDO1_VOL_MIN                    (500)
 #define XPOWERS_AXP2101_BLDO1_VOL_MAX                    (3500)
 #define XPOWERS_AXP2101_BLDO1_VOL_STEPS                  (100u)
@@ -224,11 +203,9 @@
 #define XPOWERS_AXP2101_BLDO2_VOL_STEPS                  (100u)
 
 // CPUSLDO
-
 #define XPOWERS_AXP2101_CPUSLDO_VOL_MIN                  (500)
 #define XPOWERS_AXP2101_CPUSLDO_VOL_MAX                  (1400)
 #define XPOWERS_AXP2101_CPUSLDO_VOL_STEPS                (50)
-
 
 // DLDO 1~2
 #define XPOWERS_AXP2101_DLDO1_VOL_MIN                  (500)
@@ -238,7 +215,6 @@
 #define XPOWERS_AXP2101_DLDO2_VOL_MIN                  (500)
 #define XPOWERS_AXP2101_DLDO2_VOL_MAX                  (3400)
 #define XPOWERS_AXP2101_DLDO2_VOL_STEPS                (100u)
-
 
 #define XPOWERS_AXP2101_CONVERSION(raw)                 (22.0 + (7274 - raw) / 20.0)
 
