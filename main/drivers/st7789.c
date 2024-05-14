@@ -1,21 +1,25 @@
 #include "st7789.h"
 #include "t_watch_s3.h"
 #include "ft5436.h"
-#include <esp_log.h>
-#include <esp_err.h>
-#include <esp_timer.h>
-#include <driver/gpio.h>
-#include <driver/spi_master.h>
-#include <esp_lcd_types.h>
-#include <esp_lcd_panel_io.h>
-#include <esp_lcd_panel_vendor.h>
-#include <esp_lcd_panel_ops.h>
+#include "esp_log.h"
+#include "esp_err.h"
+#include "esp_timer.h"
+#include "driver/gpio.h"
+#include "driver/spi_master.h"
+#include "esp_lcd_types.h"
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_vendor.h"
+#include "esp_lcd_panel_ops.h"
+#include "freertos/FreeRTOS.h"
 #include "lvgl.h"
 
 #define GRAPHICS_BUFFER_SIZE (BOARD_TFT_WIDTH * BOARD_TFT_HEIGHT / 10)
-#define LVGL_TICK_PERIOD_MS (2)
 #define HARDWARE_MIRROR_CORRECTION (80)
 #define LVGL_COORD_CORRECTION (20)
+
+#define LVGL_TASK_STACK_SIZE   (6 * 1024)
+#define LVGL_TASK_PRIORITY     (2)
+#define LVGL_TIMEOUT_MS        (10000)
 
 static const char *TAG = "st7789";
 static DMA_ATTR uint16_t buf1[GRAPHICS_BUFFER_SIZE];
@@ -24,6 +28,45 @@ static lv_display_t *lv_disp;
 static lv_indev_t *lv_touch_indev;
 static const lv_coord_t column_dsc[] = {(BOARD_TFT_WIDTH / 2) - LVGL_COORD_CORRECTION, (BOARD_TFT_WIDTH / 2) - LVGL_COORD_CORRECTION, LV_GRID_TEMPLATE_LAST};
 static const lv_coord_t row_dsc[] = {(BOARD_TFT_WIDTH / 2) - LVGL_COORD_CORRECTION, (BOARD_TFT_WIDTH / 2) - LVGL_COORD_CORRECTION, LV_GRID_TEMPLATE_LAST};
+static esp_timer_handle_t lvgl_tick_timer;
+static TaskHandle_t lvgl_task_handle;
+static lv_obj_t *debug_labels[4];
+
+static IRAM_ATTR void touch_isr(void *arg)
+{
+    gpio_intr_disable(BOARD_TOUCH_INT);
+    BaseType_t xYieldRequired;
+    xYieldRequired = xTaskResumeFromISR(lvgl_task_handle);
+    portYIELD_FROM_ISR(xYieldRequired);
+}
+
+static void lvgl_port_task(void *arg)
+{
+    uint32_t task_delay_ms = 0;
+    uint32_t inactive_time = 0;
+    for(;;)
+    {
+        inactive_time = lv_display_get_inactive_time(lv_disp);
+        if (inactive_time < LVGL_TIMEOUT_MS)
+        {
+            lv_label_set_text_fmt(debug_labels[0], "%ld", inactive_time);
+            task_delay_ms = lv_timer_handler();
+            vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+        }
+        else 
+        {
+            ESP_ERROR_CHECK(esp_timer_stop(lvgl_tick_timer));
+            ESP_ERROR_CHECK(gpio_set_level(BOARD_TFT_BL, 0));
+            ESP_ERROR_CHECK(gpio_intr_enable(BOARD_TOUCH_INT));
+            vTaskSuspend(lvgl_task_handle);
+            lv_tick_inc(LV_DEF_REFR_PERIOD);
+            task_delay_ms = lv_timer_handler();
+            ESP_ERROR_CHECK(esp_timer_restart(lvgl_tick_timer, LV_DEF_REFR_PERIOD * 1000));
+            vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+            ESP_ERROR_CHECK(gpio_set_level(BOARD_TFT_BL, 1));
+        }
+    }
+}
 
 static void flush_cb(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
@@ -38,7 +81,7 @@ static void flush_cb(lv_display_t * disp, const lv_area_t * area, uint8_t * px_m
 
 static void increase_lvgl_tick(void *arg)
 {
-    lv_tick_inc(LVGL_TICK_PERIOD_MS);
+    lv_tick_inc(LV_DEF_REFR_PERIOD);
 }
 
 static void touch_cb(lv_indev_t * indev, lv_indev_data_t * data)
@@ -114,11 +157,11 @@ void st7789_init(peripheral_handles_t *peripherals)
 
     esp_timer_create_args_t lvgl_tick_timer_args = {
         .callback = increase_lvgl_tick,
-        .name = "lvgl_tick"
+        .name = "lvgl_tick",
+        //.skip_unhandled_events = true
     };
-    esp_timer_handle_t lvgl_tick_timer = NULL;
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LV_DEF_REFR_PERIOD * 1000));
 }
 
 void create_lvgl_ui()
@@ -143,7 +186,13 @@ void create_lvgl_ui()
         obj = lv_button_create(cont);
         lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
         label = lv_label_create(obj);
+        debug_labels[i] = label;
         lv_label_set_text_fmt(label, "%d", i);
         lv_obj_center(label);
     }
+
+    ft5436_register_isr_handler(touch_isr);
+    ESP_ERROR_CHECK(gpio_intr_disable(BOARD_TOUCH_INT));
+
+    xTaskCreatePinnedToCore(lvgl_port_task, "lvgl", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY, &lvgl_task_handle, 1);
 }

@@ -50,11 +50,9 @@ void ft5436_init(i2c_master_dev_handle_t dev, uint8_t threshold)
         .pull_up_en = (gpio_pullup_t)1,
     }; 
     ESP_ERROR_CHECK(gpio_config(&io_conf));
-
-	/*
+	
     esp_err_t isr_service = gpio_install_isr_service(0);
     ESP_LOGI(TAG, "ISR trigger install response: 0x%x %s", isr_service, (isr_service==0)?"ESP_OK":"");
-	*/
 
 	ESP_ERROR_CHECK(i2c_writeRegister(dev_handle, FT6X36_REG_DEVICE_MODE, 0x00));
 	ESP_ERROR_CHECK(i2c_writeRegister(dev_handle, FT6X36_REG_THRESHHOLD, threshold));
