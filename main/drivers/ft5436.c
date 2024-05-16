@@ -26,7 +26,7 @@ void ft5436_init(i2c_master_dev_handle_t dev, uint8_t threshold)
 	dev_handle = dev;
 
     uint8_t data_panel_id;
-	ESP_ERROR_CHECK(i2c_readRegister(dev_handle, FT6X36_REG_PANEL_ID, &data_panel_id));
+	ESP_ERROR_CHECK(i2c_read_register(dev_handle, FT6X36_REG_PANEL_ID, &data_panel_id));
 	if (data_panel_id != FT6X36_VENDID) 
 	{
 		ESP_LOGE(TAG,"FT6X36_VENDID does not match. Received:0x%x Expected:0x%x\n",data_panel_id,FT6X36_VENDID);
@@ -34,7 +34,7 @@ void ft5436_init(i2c_master_dev_handle_t dev, uint8_t threshold)
 	}
 
 	uint8_t chip_id;
-	ESP_ERROR_CHECK(i2c_readRegister(dev_handle, FT6X36_REG_CHIPID, &chip_id));
+	ESP_ERROR_CHECK(i2c_read_register(dev_handle, FT6X36_REG_CHIPID, &chip_id));
 	if (chip_id != FT6206_CHIPID && chip_id != FT6236_CHIPID && chip_id != FT6336_CHIPID) 
 	{
 		ESP_LOGE(TAG,"FT6206_CHIPID does not match. Received:0x%x",chip_id);
@@ -54,9 +54,9 @@ void ft5436_init(i2c_master_dev_handle_t dev, uint8_t threshold)
     esp_err_t isr_service = gpio_install_isr_service(0);
     ESP_LOGI(TAG, "ISR trigger install response: 0x%x %s", isr_service, (isr_service==0)?"ESP_OK":"");
 
-	ESP_ERROR_CHECK(i2c_writeRegister(dev_handle, FT6X36_REG_DEVICE_MODE, 0x00));
-	ESP_ERROR_CHECK(i2c_writeRegister(dev_handle, FT6X36_REG_THRESHHOLD, threshold));
-	ESP_ERROR_CHECK(i2c_writeRegister(dev_handle, FT6X36_REG_TOUCHRATE_ACTIVE, 0x0E));
+	ESP_ERROR_CHECK(i2c_write_register(dev_handle, FT6X36_REG_DEVICE_MODE, 0x00));
+	ESP_ERROR_CHECK(i2c_write_register(dev_handle, FT6X36_REG_THRESHHOLD, threshold));
+	ESP_ERROR_CHECK(i2c_write_register(dev_handle, FT6X36_REG_TOUCHRATE_ACTIVE, 0x0E));
 }
 
 void ft5436_register_isr_handler(void (*fn)(void *arg)){
@@ -124,7 +124,7 @@ static bool read_data(void)
 {
     uint8_t data_size = 16U;     // Discarding last 2: 0x0E & 0x0F as not relevant
     uint8_t data[data_size];
-    i2c_readRegister(dev_handle, FT6X36_REG_NUM_TOUCHES, &touch_cnt);
+    i2c_read_register(dev_handle, FT6X36_REG_NUM_TOUCHES, &touch_cnt);
 	i2c_master_receive(dev_handle, data, data_size, -1);
 	
 	/*

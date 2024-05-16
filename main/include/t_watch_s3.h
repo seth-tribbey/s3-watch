@@ -51,3 +51,5 @@
 // PDM Microphone
 #define BOARD_MIC_DATA              (47)
 #define BOARD_MIC_CLOCK             (44)
+
+#define GRAPHICS_BUFFER_SIZE (BOARD_TFT_WIDTH * BOARD_TFT_HEIGHT / 10)

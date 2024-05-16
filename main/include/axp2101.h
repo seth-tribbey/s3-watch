@@ -219,3 +219,4 @@
 #define XPOWERS_AXP2101_CONVERSION(raw)                 (22.0 + (7274 - raw) / 20.0)
 
 void axp2101_init(i2c_master_dev_handle_t dev);
+uint8_t axp2101_get_battery_percentage();

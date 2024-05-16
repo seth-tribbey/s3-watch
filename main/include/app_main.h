@@ -1,7 +1,7 @@
 #pragma once
 
 #include "driver/i2c_master.h"
-#include <esp_lcd_types.h>
+#include "esp_lcd_types.h"
 
 typedef struct 
 {
