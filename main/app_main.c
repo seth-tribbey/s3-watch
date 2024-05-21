@@ -11,7 +11,7 @@
 #include "esp_pm.h"
 #include "esp_sleep.h"
 
-#define INIT_TASK_STACK_SIZE   (4 * 1024)
+#define INIT_TASK_STACK_SIZE   (6 * 1024)
 #define INIT_TASK_PRIORITY     (1)
 
 static const char *TAG = "app_main";

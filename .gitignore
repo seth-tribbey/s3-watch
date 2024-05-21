@@ -4,5 +4,6 @@ build/
 managed_components/
 trace/
 debug.log
+dependencies.lock
 pytest_hello_world.py
 sdkconfig.old

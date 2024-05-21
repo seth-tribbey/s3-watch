@@ -11,20 +11,42 @@
 #include "esp_timer.h"
 
 #define HARDWARE_MIRROR_CORRECTION (80)
-#define LVGL_COORD_CORRECTION (20)
-#define LVGL_TASK_STACK_SIZE   (6 * 1024)
-#define LVGL_TASK_PRIORITY     (2)
-#define LVGL_TIMEOUT_MS        (10000)
+#define LVGL_COORD_CORRECTION (10)
+#define LVGL_TASK_STACK_SIZE (6 * 1024)
+#define LVGL_TASK_PRIORITY (2)
+#define LVGL_TIMEOUT_MS (10000)
+#define LVGL_UI_SLOWTICK_MS (1000)
 
 static const char *TAG = "graphics";
 static DMA_ATTR uint16_t buf1[GRAPHICS_BUFFER_SIZE];
 static DMA_ATTR uint16_t buf2[GRAPHICS_BUFFER_SIZE];
 static lv_display_t *lv_disp;
 static lv_indev_t *lv_touch_indev;
-static const lv_coord_t column_dsc[] = {(BOARD_TFT_WIDTH / 2) - LVGL_COORD_CORRECTION, (BOARD_TFT_WIDTH / 2) - LVGL_COORD_CORRECTION, LV_GRID_TEMPLATE_LAST};
-static const lv_coord_t row_dsc[] = {(BOARD_TFT_WIDTH / 2) - LVGL_COORD_CORRECTION, (BOARD_TFT_WIDTH / 2) - LVGL_COORD_CORRECTION, LV_GRID_TEMPLATE_LAST};
+static lv_obj_t *pwr_lbl;
 static esp_timer_handle_t lvgl_tick_timer;
 static TaskHandle_t lvgl_task_handle;
+
+static lv_color_t red_color = 
+{
+    .red = 0xff,
+    .green = 0x00,
+    .blue = 0x00
+};
+
+static lv_color_t green_color = 
+{
+    .red = 0x00,
+    .green = 0xff,
+    .blue = 0x00
+};
+
+static lv_color_t blue_color = 
+{
+    .red = 0x00,
+    .green = 0x00,
+    .blue = 0xff
+};
+
 static lv_obj_t *debug_labels[4];
 static char report_buffer[512];
 
@@ -48,16 +70,23 @@ static IRAM_ATTR void touch_isr(void *arg)
 
 static void lvgl_port_task(void *arg)
 {
-    uint32_t task_delay_ms = 0;
-    uint32_t inactive_time = 0;
+    uint16_t task_delay_ms = 0;
+    uint16_t inactive_time = 0;
+    uint16_t slow_tick_counter = 0;
     for(;;)
     {
         //inactive_time = lv_display_get_inactive_time(lv_disp);
         if (inactive_time < LVGL_TIMEOUT_MS)
         {
-            lv_label_set_text_fmt(debug_labels[0], "%ld", inactive_time);
             task_delay_ms = lv_timer_handler();
             vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+            slow_tick_counter += task_delay_ms;
+
+            if (slow_tick_counter >= LVGL_UI_SLOWTICK_MS)
+            {
+                slow_tick_counter = 0;
+                lv_label_set_text_fmt(pwr_lbl, "%d%%", axp2101_get_battery_percentage());
+            }
         }
         else 
         {
@@ -74,6 +103,7 @@ static void lvgl_port_task(void *arg)
     }
 }
 
+//check px_map for color order
 static void flush_cb(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
     esp_lcd_panel_handle_t panel_handle = lv_display_get_user_data(disp);
@@ -108,6 +138,24 @@ static void touch_cb(lv_indev_t * indev, lv_indev_data_t * data)
     }
 }
 
+static void button_pressed_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t *target = (lv_obj_t*)lv_event_get_target(e);
+    lv_obj_set_style_bg_color(target, red_color, LV_PART_MAIN);
+    lv_obj_invalidate(target);
+    ESP_LOGI(TAG, "%d", code);
+}
+
+static void button_released_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t *target = (lv_obj_t*)lv_event_get_target(e);
+    lv_obj_set_style_bg_color(target, green_color, LV_PART_MAIN);
+    lv_obj_invalidate(target);
+    ESP_LOGI(TAG, "%d", code);
+}
+
 void graphics_init(peripheral_handles_t *peripherals)
 {
     //Init LVGL
@@ -131,28 +179,39 @@ void graphics_init(peripheral_handles_t *peripherals)
     
     //Create UI
     lv_obj_t *scr = lv_display_get_screen_active(lv_disp);
+    lv_obj_set_style_bg_color(scr, lv_color_black(), LV_PART_MAIN);
     lv_obj_t *cont = lv_obj_create(scr);
-    lv_obj_set_style_grid_column_dsc_array(cont, column_dsc, 0);
-    lv_obj_set_style_grid_row_dsc_array(cont, row_dsc, 0);
+    lv_obj_set_style_bg_color(cont, lv_color_black(), LV_PART_MAIN);
+    lv_obj_remove_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_size(cont, BOARD_TFT_WIDTH, BOARD_TFT_HEIGHT);
     lv_obj_center(cont);
-    lv_obj_set_layout(cont, LV_LAYOUT_GRID);
+    lv_obj_set_layout(cont, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_ROW_WRAP);
+    lv_obj_set_flex_align(cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+
+    pwr_lbl = lv_label_create(cont);
+    lv_obj_set_style_text_color(pwr_lbl, lv_color_white(), LV_PART_MAIN);
 
     lv_obj_t *label;
-    lv_obj_t *obj;
-
+    lv_obj_t *button;
     uint8_t i;
     for (i = 0; i < 4; ++i)
     {
         uint8_t col = i % 2;
         uint8_t row = i / 2;
 
-        obj = lv_button_create(cont);
-        lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
-        label = lv_label_create(obj);
+        button = lv_obj_create(cont);
+        lv_obj_set_style_bg_color(button, blue_color, LV_PART_MAIN);
+        lv_obj_add_flag(button, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(button, button_pressed_cb, LV_EVENT_PRESSED, NULL);
+        lv_obj_add_event_cb(button, button_released_cb, LV_EVENT_RELEASED, NULL);
+        lv_obj_set_size(button, LV_PCT(48), LV_PCT(42));
+        if (i == 0) lv_obj_add_flag(button, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
+        label = lv_label_create(button);
         debug_labels[i] = label;
         lv_label_set_text_fmt(label, "%d", i);
         lv_obj_center(label);
+        lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
     }
 
     //Start LVGL loop
@@ -160,6 +219,8 @@ void graphics_init(peripheral_handles_t *peripherals)
     ESP_ERROR_CHECK(gpio_intr_disable(BOARD_TOUCH_INT));
 
     xTaskCreatePinnedToCore(lvgl_port_task, "lvgl", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY, &lvgl_task_handle, 1);
+    
+    ESP_ERROR_CHECK(gpio_set_level(BOARD_TFT_BL, 1));
 
     //xTaskCreatePinnedToCore(print_stats, "print_stats", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY, NULL, 0);
 }

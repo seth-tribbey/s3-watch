@@ -44,12 +44,13 @@ void st7789_init(peripheral_handles_t *peripherals)
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = -1,
         .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
+        .data_endian = LCD_RGB_DATA_ENDIAN_LITTLE,
         .bits_per_pixel = 16
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &(peripherals->st7789_handle)));
     ESP_ERROR_CHECK(esp_lcd_panel_reset(peripherals->st7789_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(peripherals->st7789_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_mirror(peripherals->st7789_handle, true, true));
+    ESP_ERROR_CHECK(esp_lcd_panel_invert_color(peripherals->st7789_handle, true));
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(peripherals->st7789_handle, true));
-    ESP_ERROR_CHECK(gpio_set_level(BOARD_TFT_BL, 1));
 }
